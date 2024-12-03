@@ -1,8 +1,114 @@
-import '@nomiclabs/hardhat-ethers'
-import '@nomiclabs/hardhat-etherscan'
-import '@nomiclabs/hardhat-waffle'
-import 'hardhat-typechain'
 import 'hardhat-watcher'
+import { vars } from "hardhat/config";
+import type { HardhatUserConfig } from "hardhat/config";
+import "hardhat-deploy";
+import "@nomicfoundation/hardhat-toolbox";
+
+import * as dotenv from "dotenv";
+dotenv.config();
+
+import { chainNames, defaultRpcUrls, infuraSupportedNetworks, SupportedChainId } from './scripts/chains';
+import { ChainConfig, ChainConfigMinimal, etherscanApiKeys, etherscanConfig } from './scripts/explorers';
+import { NetworkUserConfig } from 'hardhat/types';
+
+const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
+if (!infuraApiKey) {
+  throw new Error("Please set your INFURA_API_KEY in a .env file");
+}
+
+// Ensure that we have all the environment variables we need.
+const mnemonic: string | undefined = process.env.MNEMONIC;
+
+const deployerPK: string | undefined = vars.get("DEPLOYER_PK");
+const hasPK = deployerPK;
+
+if (!mnemonic && !hasPK) {
+  throw new Error("Please set your PK or MNEMONIC in a .env file");
+}
+
+
+
+function isValidChainId(value: number | undefined): value is SupportedChainId {
+  return value !== undefined && Object.values(SupportedChainId).includes(value);
+}
+
+// Runtime check to ensure all required keys are present
+// Build/compile time check with a type to enforce this doesn't seem possible
+function verifyConfigIntegrity(
+  config: Partial<Record<SupportedChainId, ChainConfigMinimal>>,
+  apiKeys: Record<SupportedChainId, string>,
+) {
+  for (const key in config) {
+    if (!(key in apiKeys)) {
+      throw new Error(`Explorer API key for ${SupportedChainId[key as any]} is missing`);
+    }
+  }
+}
+
+// Call this function at the start of your application
+verifyConfigIntegrity(etherscanConfig, etherscanApiKeys as Record<SupportedChainId, string>);
+
+function getChainUrl(chainId: SupportedChainId): string {
+  // Check if the chainId has a custom URL in infuraSupportedNetworks
+  if (infuraSupportedNetworks[chainId]) {
+    return `https://${chainNames[chainId]}.infura.io/v3/${infuraApiKey}`;
+  }
+
+  return defaultRpcUrls[chainId];
+}
+
+function getChainConfig(chainId: SupportedChainId): NetworkUserConfig {
+  const jsonRpcUrl = getChainUrl(chainId);
+
+  return {
+    accounts: hasPK
+      ? [deployerPK]
+      : {
+          count: 10,
+          mnemonic: mnemonic!,
+          path: "m/44'/60'/0'/0",
+        },
+    chainId,
+    url: jsonRpcUrl,
+    timeout: 60_000, // added as the default timeout isn't sufficient for Hedera
+  };
+}
+
+const chainConfigs = Object.entries(chainNames).reduce((config, [chainIdString, chainName]) => {
+  const chainId = Number(chainIdString);
+  if (isValidChainId(chainId)) {
+    config[chainName] = getChainConfig(chainId);
+    return config;
+  } else {
+    throw new Error("Invalid chainId");
+  }
+}, {} as Record<string, NetworkUserConfig>);
+
+const chainVerifyApiKeys = Object.entries(chainNames).reduce((config, [chainIdString, chainName]) => {
+  const chainId = Number(chainIdString);
+  if (isValidChainId(chainId)) {
+    config[chainName] = etherscanApiKeys[chainId] || "";
+    return config;
+  } else {
+    throw new Error("Invalid chainId");
+  }
+}, {} as Record<string, string>);
+
+const chainConfigsArray: ChainConfig[] = Object.entries(etherscanConfig).reduce((acc, [chainIdString, config]) => {
+  const chainId = Number(chainIdString) as SupportedChainId;
+  const networkName = chainNames[chainId];
+  // Construct the ChainConfig object if URLs are provided
+  if (config?.urls) {
+    const chainConfig: ChainConfig = {
+      network: networkName,
+      chainId,
+      urls: config.urls,
+    };
+    acc.push(chainConfig);
+  }
+  return acc;
+}, [] as ChainConfig[]);
+
 
 const LOW_OPTIMIZER_COMPILER_SETTINGS = {
   version: '0.7.6',
@@ -46,43 +152,33 @@ const DEFAULT_COMPILER_SETTINGS = {
   },
 }
 
-export default {
+const config: HardhatUserConfig = {
+  defaultNetwork: "hardhat",
+  namedAccounts: {
+    deployer: 0,
+  },
   networks: {
+    ...chainConfigs,
+    // NOTE: chainConfigs is destructed before "hardhat" and "ganache" below so as to not overwrite the configs below
     hardhat: {
-      allowUnlimitedContractSize: false,
+      accounts: {
+        mnemonic,
+      },
+      chainId: SupportedChainId.HARDHAT,
     },
-    mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    ropsten: {
-      url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    goerli: {
-      url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    kovan: {
-      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    arbitrumRinkeby: {
-      url: `https://arbitrum-rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    arbitrum: {
-      url: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    optimismKovan: {
-      url: `https://optimism-kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    optimism: {
-      url: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    ganache: {
+      accounts: {
+        mnemonic,
+      },
+      chainId: SupportedChainId.GANACHE,
+      url: "http://localhost:8545",
     },
   },
   etherscan: {
-    // Your API key for Etherscan
-    // Obtain one at https://etherscan.io/
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      ...chainVerifyApiKeys,
+    },
+    customChains: chainConfigsArray,
   },
   solidity: {
     compilers: [DEFAULT_COMPILER_SETTINGS],
@@ -102,3 +198,5 @@ export default {
     },
   },
 }
+
+export default config;
