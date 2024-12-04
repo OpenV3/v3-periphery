@@ -1,0 +1,7 @@
+{
+  "UniswapV3Periphery#NFTDescriptor": "0x3Aa31b2E925d0E872f9A68Fe057Ed677e735F38d",
+  "UniswapV3Periphery#SwapRouter": "0x1A58D4CFF22C7E2e0c4cCf4a0010b87822d024A1",
+  "UniswapV3Periphery#NonfungibleTokenPositionDescriptor": "0x50893Df23638dB2607A3d398EaC6c65CDf847bB7",
+  "UniswapV3Periphery#NonfungiblePositionManager": "0x28798a2cC5B2b2Dbf9C6D719dd024603F0514a21",
+  "UniswapV3Periphery#V3Migrator": "0x53511764DE94CdA43CbBadFFCca3F29D2EFAB0F8"
+}
