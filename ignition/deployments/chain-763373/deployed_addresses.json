@@ -1,7 +1,11 @@
 {
-  "UniswapV3Periphery#NFTDescriptor": "0x3Aa31b2E925d0E872f9A68Fe057Ed677e735F38d",
-  "UniswapV3Periphery#SwapRouter": "0x1A58D4CFF22C7E2e0c4cCf4a0010b87822d024A1",
-  "UniswapV3Periphery#NonfungibleTokenPositionDescriptor": "0x50893Df23638dB2607A3d398EaC6c65CDf847bB7",
-  "UniswapV3Periphery#NonfungiblePositionManager": "0x28798a2cC5B2b2Dbf9C6D719dd024603F0514a21",
-  "UniswapV3Periphery#V3Migrator": "0x53511764DE94CdA43CbBadFFCca3F29D2EFAB0F8"
+  "UniswapV3Periphery#NFTDescriptor": "0xd92B35CD9503345c04340Bf5DFA96dCa505d3836",
+  "UniswapV3Periphery#SwapRouter": "0xE665F83541143b0e62187E889580DE25900e2342",
+  "UniswapV3Periphery#NonfungibleTokenPositionDescriptor": "0xB108B485D4948681A70CeC55d060E4E40fdb86ef",
+  "UniswapV3Periphery#NonfungiblePositionManager": "0x34513e8A327987Bb44acF5A925a7f3b4092d8b5F",
+  "UniswapV3Periphery#V3Migrator": "0x05043eE22e5E64677D42A632D42a5cb15187947B",
+  "UniswapV3Periphery#Quoter": "0xb978c58fa57BBd3951d053EDeA493E5C3ff1a415",
+  "UniswapV3Periphery#QuoterV2": "0xfA196A6c9137B320E8801252E3020f25aEe5C234",
+  "UniswapV3Periphery#TickLens": "0xD398090ba2Fc528c3D6aEB17EA49038bFCbedD4A",
+  "UniswapV3Periphery#UniswapInterfaceMulticall": "0x6aAD667f0f897F9f9a3E2a82618483f7FE53524E"
 }

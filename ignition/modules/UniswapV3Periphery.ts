@@ -49,12 +49,34 @@ export default buildModule("UniswapV3Periphery", (m) => {
     [FACTORY_ADDRESS, WRAPPED_NATIVE, nonfungiblePositionManager]
   );
 
+  // Deploy UniswapInterfaceMulticall (empty constructor)
+  const multicall = m.contract("UniswapInterfaceMulticall");
+
+  // Deploy Quoter
+  const quoter = m.contract(
+    "Quoter",
+    [FACTORY_ADDRESS, WRAPPED_NATIVE]
+  );
+
+  // Deploy QuoterV2
+  const quoterV2 = m.contract(
+    "QuoterV2",
+    [FACTORY_ADDRESS, WRAPPED_NATIVE]
+  );
+
+  // Deploy TickLens (empty constructor)
+  const tickLens = m.contract("TickLens");
+
   // Return all deployed contracts
   return {
     nftDescriptorLib,
     positionDescriptor,
     nonfungiblePositionManager,
     swapRouter,
-    v3Migrator
+    v3Migrator,
+    multicall,
+    quoter,
+    quoterV2,
+    tickLens
   };
 });
